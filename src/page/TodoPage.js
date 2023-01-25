@@ -69,7 +69,7 @@ const TodoPage = () => {
 
   useEffect(() => {
     const data = localStorage.getItem('data')
-    setTodoList(JSON.parse(data))
+    setTodoList(JSON.parse(data) || [])
   }, [])
 
   useEffect(() => {
