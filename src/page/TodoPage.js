@@ -1,22 +1,32 @@
 import { useContext, useEffect, useState } from 'react';
 import { Context } from '../App';
+import { useFilterTrue } from '../components/hooks/hooks';
 import ModalWindow from '../components/ModalWindow';
-import TodoCard from '../components/TodoCard';
+import Pagination from '../components/Pagination';
+import TodoList from '../components/TodoList';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
 
 const TodoPage = () => {
   const [ todoList, setTodoList ] = useState(null) 
   const [ isShow, setIsShow ] = useState(false)
-
   const { search, setSearch } = useContext(Context)
   const [ sortBy, setSortBy ] = useState('abs') // abs || desc || letter
-
   const [ dataTask, setDataTask ] = useState({
     title: '',
     description: '',
   })
+  const [ offset, setOffset ] = useState(0)
+
+  const newArray = useFilterTrue(todoList || [])
   
+
+  /* Handlers */
+
+  const openWindowToEdit = (todo) => {
+    setDataTask(todo)
+    setIsShow(true)
+  }
   const closeWindow = () => {
     setIsShow(prev => !prev)
     setDataTask({
@@ -30,18 +40,14 @@ const TodoPage = () => {
     })
   }
 
+
+  /* Functions to change TODO LIST */
   const addTodo = (todo) => {
     const foundTask = todoList.find((item) => item.title === todo.title)
-
     if (foundTask?.title) {
       alert('Задача с таким полем уже есть!')
       return
     }
-
-    const date = Date.now()
-
-    console.log(date)
-
     setTodoList(prev => [...prev, { id: Date.now(), title: todo.title, description: todo.description }])
   }
 
@@ -53,7 +59,6 @@ const TodoPage = () => {
         return item
       }
     })
-
     setTodoList(newTasks)
   }
 
@@ -62,11 +67,17 @@ const TodoPage = () => {
     setTodoList(newState)
   }
 
-  const openWindowToEdit = (todo) => {
-    setDataTask(todo)
-    setIsShow(true)
+  function makeCompleted(id) {
+    const newState = todoList.map((item) => {
+      if (item.id === id) {
+        return {...item, completed: !item.completed}
+      }
+      return {...item}
+    })
+    setTodoList(newState)
   }
 
+  /* USE EFFECTS */
   useEffect(() => {
     const data = localStorage.getItem('data')
     setTodoList(JSON.parse(data) || [])
@@ -79,49 +90,23 @@ const TodoPage = () => {
     localStorage.setItem('data', JSON.stringify(todoList))
   }, [ todoList ])
 
-  const SearchFunc = () => todoList?.filter((item) => item.title.includes(search))
+  // limit offset 
 
-  const SortAndFilter = (arr) => {
-
-    switch (sortBy) {
-      case 'abs': {
-        return arr?.sort((a, b) => a - b)
-      }
-      case 'desc': {
-        return []
-      }
-      case 'letter': {
-        return []
-      }
-      default: {
-        return arr
-      }
-    }
-  }
-
-  console.log(sortBy)
-  
   return (
     <>
-      {isShow && (
-          <ModalWindow editTodo={editTodo} dataTask={dataTask} handleOnChange={handleOnChange} addTodo={addTodo} closeWindow={closeWindow}/>
-      )}
+      <ModalWindow isShow={isShow} editTodo={editTodo} dataTask={dataTask} handleOnChange={handleOnChange} addTodo={addTodo} closeWindow={closeWindow}/>
       <div className='flexWrapper'>
+        <Button handleDo={() => setSortBy('asc')}>По возрастанию</Button>
+        <Button handleDo={() => setSortBy('desc')}>По убыванию</Button>
+        <Button handleDo={() => setSortBy('letter')}>По алфавиту</Button>
 
-      <Button handleDo={() => setSortBy('asc')}>По возрастанию</Button>
-      <Button handleDo={() => setSortBy('desc')}>По убыванию</Button>
-      <Button handleDo={() => setSortBy('letter')}>По алфавиту</Button>
-
-      <Input className='inputSearch' value={search} handleOnChange={(e) => setSearch(e.target.value)}/>
-      <Button handleDo={() => setIsShow(prev => !prev)}>
-        Добавить таск
-      </Button>
-      <div className='listItems'>
-      {SortAndFilter(SearchFunc())?.map((item, i) =>
-          <TodoCard key={i} openWindowToEdit={openWindowToEdit} todo={item} deleteTodo={deleteTodo}/>
-      )}
+        <Input className='inputSearch' value={search} handleOnChange={(e) => setSearch(e.target.value)}/>
+        <Button handleDo={() => setIsShow(prev => !prev)}>
+          Добавить таск
+        </Button>
+        <TodoList limit={2} offset={offset} sortBy={sortBy} todoList={todoList} makeCompleted={makeCompleted} openWindowToEdit={openWindowToEdit} deleteTodo={deleteTodo}/>
+        <Pagination setOffset={setOffset} limit={2} length={todoList?.length}/>
       </div>
-    </div>
     </>
   )
 } 

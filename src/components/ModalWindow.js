@@ -4,7 +4,11 @@ import classes from './components.module.css'
 import Button from './UI/Button'
 import Input from './UI/Input'
 
-const ModalWindow = ({ editTodo, dataTask, handleOnChange, closeWindow, addTodo }) => {
+const ModalWindow = ({ isShow, editTodo, dataTask, handleOnChange, closeWindow, addTodo }) => {
+
+  if (!isShow) {
+    return <></>
+  }
 
   return (
     <>
