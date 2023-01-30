@@ -67,6 +67,17 @@ const TodoPage = () => {
     setTodoList(newState)
   }
 
+  const ClearTodo  = ()=>{
+    console.log(todoList);
+    const newTodo = todoList.filter((a)=>{
+    if(a.completed == true){
+    return a
+    }
+    })
+    setTodoList(newTodo)
+    
+    }
+
   function makeCompleted(id) {
     const newState = todoList.map((item) => {
       if (item.id === id) {
@@ -99,7 +110,7 @@ const TodoPage = () => {
         <Button handleDo={() => setSortBy('asc')}>По возрастанию</Button>
         <Button handleDo={() => setSortBy('desc')}>По убыванию</Button>
         <Button handleDo={() => setSortBy('letter')}>По алфавиту</Button>
-
+        <button type="reset" className='buttonAdd' onClick={ClearTodo}>Clear</button>
         <Input className='inputSearch' value={search} handleOnChange={(e) => setSearch(e.target.value)}/>
         <Button handleDo={() => setIsShow(prev => !prev)}>
           Добавить таск
